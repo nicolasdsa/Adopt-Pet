@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ong
+      POSTGRES_USER: ong
+      POSTGRES_PASSWORD: ong
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ong -d ong"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://ong:ong@db:5432/ong
+      UVICORN_HOST: 0.0.0.0
+      UVICORN_PORT: 8000
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8010:8000"
+    volumes:
+      - ./api:/app
+      - api_venv:/app/.venv
+    command: >
+      bash -lc "
+        poetry run alembic upgrade head &&
+        poetry run uvicorn app.main:app --host ${UVICORN_HOST} --port ${UVICORN_PORT} --reload
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NODE_OPTIONS: "--max-old-space-size=1024"
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+    command: sh -lc "npm run dev"
+
+volumes:
+  db_data:
+  api_venv:
+  web_node_modules:
