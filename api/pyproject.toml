@@ -10,14 +10,15 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi (>=0.119.0,<0.120.0)",
     "uvicorn[standard] (>=0.37.0,<0.38.0)",
-    "pydantic (>=2.12.2,<3.0.0)",
+    "pydantic[email] (>=2.12.3,<3.0.0)",
     "sqlalchemy (>=2.0.44,<3.0.0)",
     "alembic (>=1.17.0,<2.0.0)",
     "psycopg (>=3.2.10,<4.0.0)",
     "python-multipart (>=0.0.20,<0.0.21)",
     "passlib (>=1.7.4,<2.0.0)",
     "bcrypt (>=5.0.0,<6.0.0)",
-    "python-jose (>=3.5.0,<4.0.0)"
+    "python-jose (>=3.5.0,<4.0.0)",
+    "pydantic-settings (>=2.11.0,<3.0.0)"
 ]
 
 
