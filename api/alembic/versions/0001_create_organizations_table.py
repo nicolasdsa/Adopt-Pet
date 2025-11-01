@@ -2,7 +2,7 @@
 
 Revision ID: 0001_create_organizations_table
 Revises:
-Create Date: 2024-10-11 00:00:00
+Create Date: 2025-10-28 00:00:00
 """
 
 from alembic import op
@@ -10,18 +10,17 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import table, column
 
+# revision identifiers, used by Alembic.
+revision = "0001_create_organizations"
+down_revision = None
+branch_labels = None
+depends_on = None
+
 help_types_data = [
     {"id": 1, "key": "donation", "label": "Doação"},
     {"id": 2, "key": "volunteering", "label": "Voluntariado"},
     {"id": 3, "key": "temporary_home", "label": "Lar Temporário"},
 ]
-
-
-# revision identifiers, used by Alembic.
-revision = "0001_create_organizations_table"
-down_revision = None
-branch_labels = None
-depends_on = None
 
 
 def upgrade() -> None:
@@ -47,7 +46,7 @@ def upgrade() -> None:
         sa.Column("city", sa.String(length=100), nullable=True),
         sa.Column("state", sa.String(length=2), nullable=True),
         sa.Column("phone", sa.String(length=20), nullable=True),
-        sa.Column("email", sa.String(length=255), nullable=True),
+        sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("website", sa.String(length=255), nullable=True),
         sa.Column("instagram", sa.String(length=255), nullable=True),
         sa.Column("mission", sa.Text(), nullable=True),
@@ -71,8 +70,12 @@ def upgrade() -> None:
             server_default=sa.func.now(),
             server_onupdate=sa.func.now(),
         ),
+        sa.Column("hashed_password", sa.String(length=255), nullable=True),
+        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
     )
+
     op.create_index("ix_organizations_id", "organizations", ["id"])
+    op.create_index("ix_organizations_email", "organizations", ["email"])
 
     op.create_table(
         "organization_help_types",
@@ -101,6 +104,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("organization_help_types")
+    op.drop_index("ix_organizations_email", table_name="organizations")
     op.drop_index("ix_organizations_id", table_name="organizations")
     op.drop_table("organizations")
     op.drop_table("help_types")

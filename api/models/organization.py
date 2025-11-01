@@ -30,12 +30,14 @@ class Organization(Base):
     city: Mapped[str | None] = mapped_column(String(100))
     state: Mapped[str | None] = mapped_column(String(2))
     phone: Mapped[str | None] = mapped_column(String(20))
-    email: Mapped[str | None] = mapped_column(String(255))
+    email: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    hashed_password: Mapped[str | None] = mapped_column(String(255))
     website: Mapped[str | None] = mapped_column(String(255))
     instagram: Mapped[str | None] = mapped_column(String(255))
     mission: Mapped[str | None] = mapped_column(Text())
     logo_url: Mapped[str | None] = mapped_column(String(255))
     accepts_terms: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

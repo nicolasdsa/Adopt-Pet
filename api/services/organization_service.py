@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from core.security import get_password_hash, verify_password
 from models.help_type import HelpType
 from models.organization import Organization
 from repositories.help_type_repository import HelpTypeRepository
@@ -20,6 +21,14 @@ class OrganizationNotFoundError(Exception):
 
 class DuplicateCNPJError(Exception):
     """Raised when attempting to register a duplicated CNPJ."""
+
+
+class InvalidCredentialsError(Exception):
+    """Raised when credentials provided are invalid."""
+
+
+class InactiveOrganizationError(Exception):
+    """Raised when attempting to authenticate an inactive organization."""
 
 
 @dataclass(slots=True)
@@ -45,7 +54,11 @@ class OrganizationService:
     def create_organization(
         self, db: Session, payload: OrganizationCreate
     ) -> Organization:
-        data = payload.model_dump(exclude={"help_types"}, exclude_none=True)
+        data = payload.model_dump(
+            exclude={"help_types", "password"}, exclude_none=True
+        )
+        data["email"] = payload.email.lower()
+        data["hashed_password"] = get_password_hash(payload.password)
 
         keys = [help_type.value for help_type in payload.help_types]
         help_types = self._get_help_types_by_keys(db, keys)
@@ -73,6 +86,20 @@ class OrganizationService:
         organization = self.organization_repository.get_by_id(db, organization_id)
         if organization is None:
             raise OrganizationNotFoundError
+        return organization
+
+    def authenticate(
+        self, db: Session, *, email: str, password: str
+    ) -> Organization:
+        organization = self.organization_repository.get_by_email(db, email.lower())
+        if (
+            organization is None
+            or organization.hashed_password is None
+            or not verify_password(password, organization.hashed_password)
+        ):
+            raise InvalidCredentialsError
+        if not organization.is_active:
+            raise InactiveOrganizationError
         return organization
 
     def _get_help_types_by_keys(

@@ -18,7 +18,7 @@ class OrganizationBase(BaseModel):
     city: str | None = Field(None, max_length=100)
     state: str | None = Field(None, min_length=2, max_length=2)
     phone: str | None = Field(None, max_length=20)
-    email: EmailStr | None = None
+    email: EmailStr
     website: AnyUrl | None = None
     instagram: str | None = Field(
         None, max_length=255, description="Perfil ou URL do Instagram."
@@ -32,6 +32,13 @@ class OrganizationBase(BaseModel):
 
 
 class OrganizationCreate(OrganizationBase):
+    email: EmailStr
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Senha utilizada para autenticação da ONG.",
+    )
     accepts_terms: bool = Field(
         True,
         description="O campo deve ser verdadeiro para completar o cadastro.",
