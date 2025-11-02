@@ -10,6 +10,7 @@ from db.base import Base
 from models.association_tables import organization_help_types
 
 if TYPE_CHECKING:  # pragma: no cover
+    from models.animal import Animal
     from models.help_type import HelpType
 
 
@@ -55,4 +56,9 @@ class Organization(Base):
         secondary=organization_help_types,
         back_populates="organizations",
         lazy="joined",
+    )
+    animals: Mapped[list["Animal"]] = relationship(
+        "Animal",
+        back_populates="organization",
+        cascade="all, delete-orphan",
     )
