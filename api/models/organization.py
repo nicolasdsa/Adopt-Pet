@@ -2,12 +2,21 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, String, Text, func
+from sqlalchemy import Boolean, DateTime, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import UserDefinedType
 
 from db.base import Base
 from models.association_tables import organization_help_types
+
+
+class GeographyPoint(UserDefinedType):
+    """PostGIS geography point column."""
+
+    def get_col_spec(self, **kw: object) -> str:
+        return "GEOGRAPHY(Point, 4326)"
+
 
 if TYPE_CHECKING:  # pragma: no cover
     from models.animal import Animal
@@ -41,6 +50,18 @@ class Organization(Base):
     logo_url: Mapped[str | None] = mapped_column(String(255))
     accepts_terms: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    latitude: Mapped[float | None] = mapped_column(
+        Numeric(9, 6, asdecimal=False),
+        nullable=True,
+    )
+    longitude: Mapped[float | None] = mapped_column(
+        Numeric(9, 6, asdecimal=False),
+        nullable=True,
+    )
+    location: Mapped[object | None] = mapped_column(
+        GeographyPoint(),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

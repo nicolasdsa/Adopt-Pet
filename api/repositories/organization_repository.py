@@ -1,8 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, joinedload
 
+from models.help_type import HelpType
 from models.organization import Organization
 
 
@@ -34,3 +35,51 @@ class OrganizationRepository:
     def get_by_email(self, db: Session, email: str) -> Organization | None:
         stmt = self._base_query().where(Organization.email == email)
         return db.execute(stmt).scalar_one_or_none()
+
+    def search(
+        self,
+        db: Session,
+        *,
+        skip: int = 0,
+        limit: int = 50,
+        name: str | None = None,
+        help_type_key: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        radius_km: float | None = None,
+    ) -> list[tuple[Organization, float | None]]:
+        stmt = self._base_query()
+
+        if name:
+            clean_name = name.strip()
+            if clean_name:
+                stmt = stmt.where(Organization.name.ilike(f"%{clean_name}%"))
+
+        if help_type_key:
+            stmt = stmt.where(Organization.help_types.any(HelpType.key == help_type_key))
+
+        distance_expr = None
+        if latitude is not None and longitude is not None:
+            radius_meters = (radius_km or 25.0) * 1000.0
+            reference_point = func.ST_SetSRID(
+                func.ST_MakePoint(longitude, latitude),
+                4326,
+            )
+            stmt = stmt.where(Organization.location.isnot(None))
+            stmt = stmt.where(func.ST_DWithin(Organization.location, reference_point, radius_meters))
+            distance_expr = (
+                func.ST_DistanceSphere(Organization.location, reference_point) / 1000.0
+            ).label("distance_km")
+            stmt = stmt.add_columns(distance_expr)
+            stmt = stmt.order_by(distance_expr)
+        else:
+            stmt = stmt.order_by(Organization.created_at.desc())
+
+        stmt = stmt.offset(skip).limit(limit)
+
+        if distance_expr is not None:
+            records = db.execute(stmt).all()
+            return [(organization, distance) for organization, distance in records]
+
+        organizations = list(db.execute(stmt).scalars())
+        return [(organization, None) for organization in organizations]

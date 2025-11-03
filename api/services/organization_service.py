@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -12,7 +13,10 @@ from models.help_type import HelpType
 from models.organization import Organization
 from repositories.help_type_repository import HelpTypeRepository
 from repositories.organization_repository import OrganizationRepository
-from schemas.organization import OrganizationCreate
+from schemas.organization import (
+    HelpType as HelpTypeEnum,
+    OrganizationCreate,
+)
 
 
 class OrganizationNotFoundError(Exception):
@@ -65,6 +69,7 @@ class OrganizationService:
 
         organization = Organization(**data)
         organization.help_types = [help_types[key] for key in keys]
+        self._apply_location(organization)
 
         self.organization_repository.add(db, organization)
 
@@ -102,6 +107,30 @@ class OrganizationService:
             raise InactiveOrganizationError
         return organization
 
+    def search_organizations(
+        self,
+        db: Session,
+        *,
+        skip: int = 0,
+        limit: int = 50,
+        name: str | None = None,
+        help_type: HelpTypeEnum | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        radius_km: float | None = None,
+    ) -> list[tuple[Organization, float | None]]:
+        results = self.organization_repository.search(
+            db,
+            skip=skip,
+            limit=limit,
+            name=name,
+            help_type_key=help_type.value if help_type else None,
+            latitude=latitude,
+            longitude=longitude,
+            radius_km=radius_km,
+        )
+        return results
+
     def _get_help_types_by_keys(
         self, db: Session, keys: Iterable[str]
     ) -> dict[str, HelpType]:
@@ -111,3 +140,13 @@ class OrganizationService:
         if missing:
             raise HelpTypeNotFoundError(missing)
         return help_types_by_key
+
+    def _apply_location(self, organization: Organization) -> None:
+        if organization.latitude is None or organization.longitude is None:
+            organization.location = None
+            return
+
+        organization.location = func.ST_SetSRID(
+            func.ST_MakePoint(organization.longitude, organization.latitude),
+            4326,
+        )

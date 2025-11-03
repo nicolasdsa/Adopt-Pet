@@ -17,23 +17,51 @@ down_revision = "0001_create_organizations"
 branch_labels = None
 depends_on = None
 
-animal_sex_enum = sa.Enum(
+def _create_enum(name: str, values: list[str]) -> None:
+    values_sql = ", ".join(f"'{value}'" for value in values)
+    op.execute(
+        sa.text(
+            f"""
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{name}') THEN
+        CREATE TYPE {name} AS ENUM ({values_sql});
+    END IF;
+END
+$$;
+"""
+        )
+    )
+
+
+def _drop_enum(name: str) -> None:
+    op.execute(sa.text(f"DROP TYPE IF EXISTS {name}"))
+
+
+animal_sex_enum = postgresql.ENUM(
     "male",
     "female",
     "unknown",
     name="animal_sex",
+    create_type=False,
 )
 
-animal_size_enum = sa.Enum(
+animal_size_enum = postgresql.ENUM(
     "small",
     "medium",
     "large",
     "unknown",
     name="animal_size",
+    create_type=False,
 )
 
-animal_status_enum = sa.Enum(
-    "available", "reserved", "adopted", "draft", name="animal_status"
+animal_status_enum = postgresql.ENUM(
+    "available",
+    "reserved",
+    "adopted",
+    "draft",
+    name="animal_status",
+    create_type=False,
 )
 
 animal_species_seed = [
@@ -43,10 +71,9 @@ animal_species_seed = [
 
 
 def upgrade() -> None:
-    bind = op.get_bind()
-    animal_sex_enum.create(bind, checkfirst=True)
-    animal_size_enum.create(bind, checkfirst=True)
-    animal_status_enum.create(bind, checkfirst=True)
+    _create_enum("animal_sex", ["male", "female", "unknown"])
+    _create_enum("animal_size", ["small", "medium", "large", "unknown"])
+    _create_enum("animal_status", ["available", "reserved", "adopted", "draft"])
 
     op.create_table(
         "animal_species",
@@ -193,7 +220,6 @@ def downgrade() -> None:
     op.drop_table("animals")
     op.drop_table("animal_species")
 
-    bind = op.get_bind()
-    animal_status_enum.drop(bind, checkfirst=True)
-    animal_size_enum.drop(bind, checkfirst=True)
-    animal_sex_enum.drop(bind, checkfirst=True)
+    _drop_enum("animal_status")
+    _drop_enum("animal_size")
+    _drop_enum("animal_sex")

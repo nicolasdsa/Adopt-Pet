@@ -29,6 +29,18 @@ class OrganizationBase(BaseModel):
         None, max_length=255, description="Caminho ou URL do logo."
     )
     accepts_terms: bool = Field(False, description="Confirmação de aceite de termos.")
+    latitude: float | None = Field(
+        None,
+        ge=-90,
+        le=90,
+        description="Latitude em graus decimais (WGS84).",
+    )
+    longitude: float | None = Field(
+        None,
+        ge=-180,
+        le=180,
+        description="Longitude em graus decimais (WGS84).",
+    )
 
 
 class OrganizationCreate(OrganizationBase):
@@ -58,3 +70,11 @@ class OrganizationRead(OrganizationBase):
 
     class Config:
         from_attributes = True
+
+
+class OrganizationSearchRead(OrganizationRead):
+    distance_km: float | None = Field(
+        None,
+        ge=0,
+        description="Distância aproximada em quilômetros até a coordenada consultada.",
+    )

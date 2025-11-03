@@ -1,10 +1,12 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: postgis/postgis:16-3.4
     environment:
       POSTGRES_DB: ong
       POSTGRES_USER: ong
       POSTGRES_PASSWORD: ong
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:

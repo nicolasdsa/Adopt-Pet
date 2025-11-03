@@ -10,6 +10,7 @@ from schemas.organization import (
     HelpType as HelpTypeEnum,
     OrganizationCreate,
     OrganizationRead,
+    OrganizationSearchRead,
 )
 from services.organization_service import (
     DuplicateCNPJError,
@@ -45,6 +46,30 @@ def list_organizations(
     return [_serialize(organization) for organization in organizations]
 
 
+def search_organizations(
+    db: Session,
+    *,
+    skip: int = 0,
+    limit: int = 50,
+    name: str | None = None,
+    help_type: HelpTypeEnum | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    radius_km: float | None = None,
+) -> list[OrganizationSearchRead]:
+    results = service.search_organizations(
+        db,
+        skip=skip,
+        limit=limit,
+        name=name,
+        help_type=help_type,
+        latitude=latitude,
+        longitude=longitude,
+        radius_km=radius_km,
+    )
+    return [_serialize_search(organization, distance) for organization, distance in results]
+
+
 def get_organization(organization_id: UUID, db: Session) -> OrganizationRead:
     try:
         organization = service.get_organization(db, organization_id)
@@ -72,6 +97,21 @@ def _serialize(organization: Organization) -> OrganizationRead:
         help_types=[HelpTypeEnum(help_type.key) for help_type in organization.help_types],
         logo_url=organization.logo_url,
         accepts_terms=organization.accepts_terms,
+        latitude=_to_float(organization.latitude),
+        longitude=_to_float(organization.longitude),
         created_at=organization.created_at,
         updated_at=organization.updated_at,
     )
+
+
+def _serialize_search(
+    organization: Organization, distance_km: float | None
+) -> OrganizationSearchRead:
+    return OrganizationSearchRead(
+        **_serialize(organization).model_dump(),
+        distance_km=_to_float(distance_km),
+    )
+
+
+def _to_float(value: float | None) -> float | None:
+    return float(value) if value is not None else None
