@@ -78,3 +78,13 @@ class OrganizationSearchRead(OrganizationRead):
         ge=0,
         description="Distância aproximada em quilômetros até a coordenada consultada.",
     )
+    dogs_count: int = Field(
+        0,
+        ge=0,
+        description="Quantidade de cães cadastrados pela ONG.",
+    )
+    cats_count: int = Field(
+        0,
+        ge=0,
+        description="Quantidade de gatos cadastrados pela ONG.",
+    )

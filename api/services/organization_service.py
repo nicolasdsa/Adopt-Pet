@@ -118,7 +118,7 @@ class OrganizationService:
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: float | None = None,
-    ) -> list[tuple[Organization, float | None]]:
+    ) -> list[tuple[Organization, float | None, int, int]]:
         results = self.organization_repository.search(
             db,
             skip=skip,

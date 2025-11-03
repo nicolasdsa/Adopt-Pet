@@ -67,7 +67,10 @@ def search_organizations(
         longitude=longitude,
         radius_km=radius_km,
     )
-    return [_serialize_search(organization, distance) for organization, distance in results]
+    return [
+        _serialize_search(organization, distance, dogs_count, cats_count)
+        for organization, distance, dogs_count, cats_count in results
+    ]
 
 
 def get_organization(organization_id: UUID, db: Session) -> OrganizationRead:
@@ -105,11 +108,16 @@ def _serialize(organization: Organization) -> OrganizationRead:
 
 
 def _serialize_search(
-    organization: Organization, distance_km: float | None
+    organization: Organization,
+    distance_km: float | None,
+    dogs_count: int,
+    cats_count: int,
 ) -> OrganizationSearchRead:
     return OrganizationSearchRead(
         **_serialize(organization).model_dump(),
         distance_km=_to_float(distance_km),
+        dogs_count=dogs_count,
+        cats_count=cats_count,
     )
 
 

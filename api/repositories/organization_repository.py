@@ -3,6 +3,8 @@ from uuid import UUID
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, joinedload
 
+from models.animal import Animal
+from models.animal_species import AnimalSpecies
 from models.help_type import HelpType
 from models.organization import Organization
 
@@ -47,8 +49,31 @@ class OrganizationRepository:
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: float | None = None,
-    ) -> list[tuple[Organization, float | None]]:
+    ) -> list[tuple[Organization, float | None, int, int]]:
         stmt = self._base_query()
+
+        dogs_count = (
+            select(func.count(Animal.id))
+            .select_from(Animal)
+            .join(AnimalSpecies, Animal.species_id == AnimalSpecies.id)
+            .where(Animal.organization_id == Organization.id)
+            .where(AnimalSpecies.slug == "dog")
+            .correlate(Organization)
+            .scalar_subquery()
+            .label("dogs_count")
+        )
+        cats_count = (
+            select(func.count(Animal.id))
+            .select_from(Animal)
+            .join(AnimalSpecies, Animal.species_id == AnimalSpecies.id)
+            .where(Animal.organization_id == Organization.id)
+            .where(AnimalSpecies.slug == "cat")
+            .correlate(Organization)
+            .scalar_subquery()
+            .label("cats_count")
+        )
+
+        stmt = stmt.add_columns(dogs_count, cats_count)
 
         if name:
             clean_name = name.strip()
@@ -79,7 +104,23 @@ class OrganizationRepository:
 
         if distance_expr is not None:
             records = db.execute(stmt).all()
-            return [(organization, distance) for organization, distance in records]
+            return [
+                (
+                    organization,
+                    distance,
+                    int(dogs_count or 0),
+                    int(cats_count or 0),
+                )
+                for organization, dogs_count, cats_count, distance in records
+            ]
 
-        organizations = list(db.execute(stmt).scalars())
-        return [(organization, None) for organization in organizations]
+        records = db.execute(stmt).all()
+        return [
+            (
+                organization,
+                None,
+                int(dogs_count or 0),
+                int(cats_count or 0),
+            )
+            for organization, dogs_count, cats_count in records
+        ]
