@@ -26,6 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from models.animal_photo import AnimalPhoto
     from models.animal_species import AnimalSpecies
     from models.organization import Organization
+    from models.expense import Expense
 
 
 class AnimalSex(str, Enum):
@@ -126,6 +127,10 @@ class Animal(Base):
         back_populates="animal",
         cascade="all, delete-orphan",
         order_by="AnimalPhoto.position",
+    )
+    expenses: Mapped[list["Expense"]] = relationship(
+        "Expense",
+        back_populates="animal",
     )
 
     def __repr__(self) -> str:  # pragma: no cover - debugging helper

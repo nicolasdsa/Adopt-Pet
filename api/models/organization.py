@@ -11,6 +11,8 @@ from models.association_tables import organization_help_types
 
 if TYPE_CHECKING:  # pragma: no cover
     from models.animal import Animal
+    from models.expense import Expense
+    from models.expense_category import ExpenseCategory
     from models.help_type import HelpType
 
 
@@ -59,6 +61,16 @@ class Organization(Base):
     )
     animals: Mapped[list["Animal"]] = relationship(
         "Animal",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+    expense_categories: Mapped[list["ExpenseCategory"]] = relationship(
+        "ExpenseCategory",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+    expenses: Mapped[list["Expense"]] = relationship(
+        "Expense",
         back_populates="organization",
         cascade="all, delete-orphan",
     )
