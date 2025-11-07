@@ -72,6 +72,7 @@ def search_ongs(
     radius_km: float | None = Query(
         None,
         gt=0,
+        le=300
         description="Raio de busca em quilômetros. Padrão 25 km.",
     ),
     db: Session = Depends(get_db),
