@@ -114,17 +114,21 @@ class OrganizationService:
         skip: int = 0,
         limit: int = 50,
         name: str | None = None,
-        help_type: HelpTypeEnum | None = None,
+        help_types: list[HelpTypeEnum] | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: float | None = None,
     ) -> list[tuple[Organization, float | None, int, int]]:
+        help_type_keys = (
+            [help_type.value for help_type in help_types] if help_types else None
+        )
+
         results = self.organization_repository.search(
             db,
             skip=skip,
             limit=limit,
             name=name,
-            help_type_key=help_type.value if help_type else None,
+            help_type_keys=help_type_keys,
             latitude=latitude,
             longitude=longitude,
             radius_km=radius_km,

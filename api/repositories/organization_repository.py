@@ -45,7 +45,7 @@ class OrganizationRepository:
         skip: int = 0,
         limit: int = 50,
         name: str | None = None,
-        help_type_key: str | None = None,
+        help_type_keys: list[str] | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
         radius_km: float | None = None,
@@ -80,8 +80,10 @@ class OrganizationRepository:
             if clean_name:
                 stmt = stmt.where(Organization.name.ilike(f"%{clean_name}%"))
 
-        if help_type_key:
-            stmt = stmt.where(Organization.help_types.any(HelpType.key == help_type_key))
+        if help_type_keys:
+            stmt = stmt.where(
+                Organization.help_types.any(HelpType.key.in_(help_type_keys))
+            )
 
         distance_expr = None
         if latitude is not None and longitude is not None:

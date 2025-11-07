@@ -56,7 +56,10 @@ def search_ongs(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     name: str | None = Query(None, min_length=1, max_length=255),
-    help_type: HelpType | None = Query(None),
+    help_types: list[HelpType] | None = Query(
+        None,
+        description="Filtrar por tipos de ajuda. Use o parâmetro várias vezes para múltiplos valores.",
+    ),
     latitude: float | None = Query(
         None,
         ge=-90,
@@ -72,7 +75,7 @@ def search_ongs(
     radius_km: float | None = Query(
         None,
         gt=0,
-        le=300
+        le=300,
         description="Raio de busca em quilômetros. Padrão 25 km.",
     ),
     db: Session = Depends(get_db),
@@ -89,7 +92,7 @@ def search_ongs(
         skip=skip,
         limit=limit,
         name=name,
-        help_type=help_type,
+        help_types=help_types,
         latitude=latitude,
         longitude=longitude,
         radius_km=radius_km,
