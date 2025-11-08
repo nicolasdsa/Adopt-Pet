@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     app_name: str = Field("Adopt Pet API", alias="APP_NAME")
+    backend_cors_origins: list[str] = Field(
+        default_factory=lambda: ["*"],
+        alias="BACKEND_CORS_ORIGINS",
+        description="Allowed origins for CORS requests.",
+    )
     database_url: str = Field(
         "sqlite:///./app.db", alias="DATABASE_URL", description="SQLAlchemy database URL"
     )

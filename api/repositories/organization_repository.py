@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from models.animal import Animal
 from models.animal_species import AnimalSpecies
 from models.help_type import HelpType
-from models.organization import Organization
+from models.organization import GeographyPoint, Organization
 
 
 class OrganizationRepository:
@@ -92,10 +92,13 @@ class OrganizationRepository:
                 func.ST_MakePoint(longitude, latitude),
                 4326,
             )
+            reference_point_geog = func.cast(reference_point, GeographyPoint())
             stmt = stmt.where(Organization.location.isnot(None))
-            stmt = stmt.where(func.ST_DWithin(Organization.location, reference_point, radius_meters))
+            stmt = stmt.where(
+                func.ST_DWithin(Organization.location, reference_point_geog, radius_meters)
+            )
             distance_expr = (
-                func.ST_DistanceSphere(Organization.location, reference_point) / 1000.0
+                func.ST_Distance(Organization.location, reference_point_geog) / 1000.0
             ).label("distance_km")
             stmt = stmt.add_columns(distance_expr)
             stmt = stmt.order_by(distance_expr)
