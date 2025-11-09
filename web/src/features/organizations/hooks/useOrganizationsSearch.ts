@@ -8,10 +8,10 @@ const SP_FALLBACK = { lat: -23.55052, lng: -46.633308 };
 
 export type SearchState = {
   name: string;
-  radiusKm: number;      // 3..200
-  helpTypes: HelpType[]; // multiseleção
-  page: number;          // 1..n
-  limit: number;         // 9
+  radiusKm: number;      
+  helpTypes: HelpType[]; 
+  page: number;          
+  limit: number;         
 };
 
 export function useOrganizationsSearch(s: SearchState) {
@@ -22,7 +22,6 @@ export function useOrganizationsSearch(s: SearchState) {
   const [hasNext, setHasNext] = useState(false);
   const ctrlRef = useRef<AbortController | null>(null);
 
-  // geolocalização
   useEffect(() => {
     let mounted = true;
     navigator.geolocation.getCurrentPosition(
@@ -33,7 +32,6 @@ export function useOrganizationsSearch(s: SearchState) {
     return () => { mounted = false; };
   }, []);
 
-  // busca
   useEffect(() => {
     if (!coords) return;
     ctrlRef.current?.abort();

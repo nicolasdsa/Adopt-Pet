@@ -2,7 +2,7 @@
 
 type Props = {
   page: number;
-  hasNext: boolean; // se lista veio com length === limit
+  hasNext: boolean;
   onPrev: () => void;
   onNext: () => void;
 };

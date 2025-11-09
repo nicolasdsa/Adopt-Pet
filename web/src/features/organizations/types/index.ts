@@ -9,7 +9,7 @@ export type OrganizationSearchRead = {
   cnpj: string;
   address?: string | null;
   city?: string | null;
-  state?: string | null;     // "SP", "RJ", etc.
+  state?: string | null;     
   phone?: string | null;
   email: string;
   website?: string | null;
@@ -22,6 +22,6 @@ export type OrganizationSearchRead = {
   longitude?: number | null;
 
   distance_km?: number | null;
-  dogs_count: number;        // inteiro >= 0
-  cats_count: number;        // inteiro >= 0
+  dogs_count: number;        
+  cats_count: number;       
 };

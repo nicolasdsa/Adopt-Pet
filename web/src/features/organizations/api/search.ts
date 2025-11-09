@@ -3,13 +3,13 @@ import { HelpType, OrganizationSearchRead } from "@/features/organizations/types
 const API = "http://localhost:8010";
 
 export type SearchQuery = {
-  skip: number;          // (page-1)*limit
-  limit: number;         // 1..100 (vou usar 9 para grid 3x3)
+  skip: number;         
+  limit: number;       
   name?: string;
   helpTypes?: HelpType[];
-  latitude: number;      // obrigatório no client
-  longitude: number;     // obrigatório no client
-  radiusKm: number;      // 3..200 (teu backend aceita até 300)
+  latitude: number;      
+  longitude: number;    
+  radiusKm: number;      
 };
 
 export async function fetchOrganizations(q: SearchQuery, signal?: AbortSignal) {
