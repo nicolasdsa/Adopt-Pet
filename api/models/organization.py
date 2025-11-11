@@ -23,6 +23,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from models.expense import Expense
     from models.expense_category import ExpenseCategory
     from models.help_type import HelpType
+    from models.adoption import Adoption
 
 
 class Organization(Base):
@@ -92,6 +93,11 @@ class Organization(Base):
     )
     expenses: Mapped[list["Expense"]] = relationship(
         "Expense",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+    adoptions: Mapped[list["Adoption"]] = relationship(
+        "Adoption",
         back_populates="organization",
         cascade="all, delete-orphan",
     )

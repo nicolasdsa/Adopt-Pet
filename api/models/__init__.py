@@ -1,3 +1,4 @@
+from models.adoption import Adoption
 from models.animal import Animal, AnimalSex, AnimalSize, AnimalStatus
 from models.animal_photo import AnimalPhoto
 from models.animal_species import AnimalSpecies
@@ -19,4 +20,5 @@ __all__ = [
     "AnimalStatus",
     "Organization",
     "HelpType",
+    "Adoption",
 ]

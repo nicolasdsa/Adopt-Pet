@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from .animal_router import router as animal_router
 from .auth_router import router as auth_router
+from .dashboard_router import router as dashboard_router
 from .expense_category_router import router as expense_category_router
 from .expense_router import router as expense_router
 from .organization_router import router as organization_router
@@ -12,5 +13,6 @@ api_router.include_router(animal_router)
 api_router.include_router(expense_category_router)
 api_router.include_router(expense_router)
 api_router.include_router(auth_router)
+api_router.include_router(dashboard_router)
 
 __all__ = ["api_router"]
