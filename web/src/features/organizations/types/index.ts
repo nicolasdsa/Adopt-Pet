@@ -25,3 +25,29 @@ export type OrganizationSearchRead = {
   dogs_count: number;        
   cats_count: number;       
 };
+
+export type OrganizationCreate = {
+  name: string;
+  cnpj: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;  
+  phone?: string | null;
+  email: string;
+  website?: string | null;
+  instagram?: string | null;
+  mission?: string | null;
+  help_types: HelpType[];
+  logo_url?: string | null;
+  accepts_terms: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  password: string;       
+};
+
+export type OrganizationRead = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+} & Omit<OrganizationCreate, "password">;
+
