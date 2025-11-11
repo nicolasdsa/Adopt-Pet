@@ -5,7 +5,12 @@ from sqlalchemy.orm import Session
 
 from models.animal import Animal
 from models.organization import Organization
-from schemas.animal import AnimalCreate, AnimalPhotoRead, AnimalRead
+from schemas.animal import (
+    AnimalCreate,
+    AnimalPhotoRead,
+    AnimalRead,
+    AnimalSpeciesRead,
+)
 from services.animal_service import AnimalService, AnimalSpeciesNotFoundError
 
 service = AnimalService()
@@ -25,6 +30,11 @@ def create_animal(
             detail="Tipo de animal não encontrado.",
         )
     return _serialize(animal)
+
+
+def list_species(db: Session) -> list[AnimalSpeciesRead]:
+    species = service.list_species(db)
+    return [AnimalSpeciesRead.model_validate(item) for item in species]
 
 
 def _serialize(animal: Animal) -> AnimalRead:

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from models.animal import Animal
 from models.animal_photo import AnimalPhoto
+from models.animal_species import AnimalSpecies
 from models.organization import Organization
 from repositories.animal_repository import AnimalRepository
 from repositories.animal_species_repository import AnimalSpeciesRepository
@@ -25,6 +26,9 @@ class AnimalService:
         self.animal_species_repository = (
             animal_species_repository or AnimalSpeciesRepository()
         )
+
+    def list_species(self, db: Session) -> list[AnimalSpecies]:
+        return self.animal_species_repository.list_all(db)
 
     def create_animal(
         self,
