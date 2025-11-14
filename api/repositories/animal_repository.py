@@ -22,7 +22,7 @@ class AnimalRepository:
 
     def get_by_id(self, db: Session, animal_id: UUID) -> Animal | None:
         stmt = self._base_query().where(Animal.id == animal_id)
-        return db.execute(stmt).scalar_one_or_none()
+        return db.execute(stmt).unique().scalar_one_or_none()
 
     def list_by_organization(
         self,

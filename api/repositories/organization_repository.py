@@ -32,11 +32,11 @@ class OrganizationRepository:
 
     def get_by_id(self, db: Session, organization_id: UUID) -> Organization | None:
         stmt = self._base_query().where(Organization.id == organization_id)
-        return db.execute(stmt).scalar_one_or_none()
+        return db.execute(stmt).unique().scalar_one_or_none()
 
     def get_by_email(self, db: Session, email: str) -> Organization | None:
         stmt = self._base_query().where(Organization.email == email)
-        return db.execute(stmt).scalar_one_or_none()
+        return db.execute(stmt).unique().scalar_one_or_none()
 
     def search(
         self,

@@ -20,7 +20,7 @@ class ExpenseCategoryRepository:
 
     def get_by_id(self, db: Session, category_id: UUID) -> ExpenseCategory | None:
         stmt = self._base_query().where(ExpenseCategory.id == category_id)
-        return db.execute(stmt).scalar_one_or_none()
+        return db.execute(stmt).unique().scalar_one_or_none()
 
     def get_owned_by_organization(
         self, db: Session, category_id: UUID, organization_id: UUID

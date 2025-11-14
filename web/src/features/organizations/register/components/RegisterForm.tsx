@@ -5,8 +5,10 @@ import { useState } from "react";
 import { HelpType, OrganizationCreate } from "@/features/organizations/types";
 import { registerOrganization } from "@/features/organizations/api/register";
 import { useGeocodeAddress } from "../hooks/useGeocode";
-import { nominatimAdapter } from "../services/geocoding/nominatim";
+import { locationIqAdapter  } from "../services/geocoding/locationiq";
 import { uploadthingAdapter } from "../services/file-upload/uploadthing";
+import { isAllowedFile } from "../services/file-upload/allowed";
+import { compressImageToWebp } from "../services/file-upload/compress";
 
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA",
              "MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN",
@@ -29,13 +31,13 @@ export default function RegisterForm() {
   const [helpTypes, setHelpTypes] = useState<HelpType[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-
+  const [uploadOk, setUploadOk] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // geocode automático após preencher endereço + cidade + estado
-  const { coords, loading: geocoding } = useGeocodeAddress(address, city, state, nominatimAdapter);
+  const { coords, loading: geocoding } = useGeocodeAddress(address, city, state, locationIqAdapter );
 
   function toggleHelp(t: HelpType) {
     setHelpTypes((prev) => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
@@ -43,10 +45,17 @@ export default function RegisterForm() {
 
   async function onSelectFile(file?: File) {
     if (!file) return;
+    if (!isAllowedFile(file)) {
+      setErrorMsg("Formato não permitido. Envie PNG, JPEG ou WebP.");
+      return;
+   }
     try {
       setUploading(true);
-      const url = await uploadthingAdapter.uploadImage(file);
+      setUploadOk(false);
+      const optimized = await compressImageToWebp(file);
+      const url = await uploadthingAdapter.uploadImage(optimized);
       setLogoUrl(url);
+      setUploadOk(true);
     } catch {
       setErrorMsg("Falha ao enviar a imagem. Tente novamente.");
     } finally {
@@ -118,6 +127,10 @@ export default function RegisterForm() {
       {/* Onde nos encontrar */}
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">Onde nos encontrar</h2>
+        <p className="text-xs text-gray-400">
+  Geocodificação: <a className="underline" href="https://locationiq.com" target="_blank" rel="noreferrer">Search by LocationIQ.com</a>
+</p>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <label className="flex flex-col md:col-span-2">
             <p className="pb-2 font-medium">Endereço</p>
@@ -147,7 +160,6 @@ export default function RegisterForm() {
         {/* Status da geocodificação */}
         <p className="text-sm text-gray-500">
           {geocoding && "Buscando coordenadas…"}
-          {!geocoding && coords && `Localização encontrada: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`}
           {!geocoding && !coords && address && city && state && "Não foi possível localizar este endereço."}
         </p>
       </section>
@@ -200,16 +212,24 @@ export default function RegisterForm() {
           <p className="pb-2 font-medium">Logo ou Banner</p>
           <div
             onDragOver={(e)=>e.preventDefault()}
-            onDrop={(e)=>{ e.preventDefault(); const f=e.dataTransfer.files?.[0]; if (f) onSelectFile(f); }}
+            onDrop={(e)=>{e.preventDefault();
+            const f = e.dataTransfer.files?.[0];
+            if (!f) return;
+            if (!isAllowedFile(f)) {
+              setErrorMsg("Formato não permitido. Envie PNG, JPEG ou WebP.");
+              return;
+            }
+            onSelectFile(f);
+            }}
             className="flex items-center justify-center w-full"
           >
             <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-white hover:bg-orange-50">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <span className="text-4xl text-gray-400">⬆️</span>
                 <p className="mb-2 text-sm text-gray-600"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
-                <p className="text-xs text-gray-500">PNG, JPG ou GIF (máx. 2MB)</p>
+                <p className="text-xs text-gray-500">PNG, JPEG ou WebP (máx. 2MB)</p>
                 {uploading && <p className="text-xs text-gray-500 mt-2">Enviando…</p>}
-                {logoUrl && <p className="text-xs text-green-600 mt-2">Arquivo enviado ✔</p>}
+                {uploadOk && <p className="text-xs text-green-600 mt-2">Imagem otimizada e enviada com sucesso ✔</p>}
               </div>
               <input
                 type="file" accept="image/*" className="hidden"

@@ -6,7 +6,7 @@ export async function registerOrganization(
   payload: OrganizationCreate,
   signal?: AbortSignal
 ): Promise<OrganizationRead> {
-  const res = await fetch(`${API}/organizations`, {
+  const res = await fetch(`${API}/ongs`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

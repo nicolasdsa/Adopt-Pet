@@ -5,12 +5,9 @@ from typing import Any, Dict, Mapping
 from uuid import UUID
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 
 from core.config import get_settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 class InvalidTokenError(Exception):
     """Raised when a JWT token cannot be validated."""
@@ -18,12 +15,24 @@ class InvalidTokenError(Exception):
 
 def get_password_hash(password: str) -> str:
     """Generate a password hash using bcrypt."""
-    return pwd_context.hash(password)
+    hashed = bcrypt.hashpw(
+        password.encode("utf-8"),
+        bcrypt.gensalt(),
+    )
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Check whether the provided password matches the stored hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    if isinstance(hashed_password, str):
+        hashed_bytes = hashed_password.encode("utf-8")
+    else:
+        hashed_bytes = hashed_password
+
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"),
+        hashed_bytes,
+    )
 
 
 def create_access_token(

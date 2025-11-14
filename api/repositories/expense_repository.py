@@ -59,4 +59,4 @@ class ExpenseRepository:
                 Expense.organization_id == organization_id,
             )
         )
-        return db.execute(stmt).scalar_one_or_none()
+        return db.execute(stmt).unique().scalar_one_or_none()

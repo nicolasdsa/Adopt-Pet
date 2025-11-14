@@ -13,7 +13,7 @@ export default function Page() {
       <div className="mt-8 text-center">
         <p className="text-gray-700">Sua ONG ainda não faz parte da nossa comunidade?</p>
         <Link
-          href="/ongs/cadastrar"
+          href="/auth/register"
           className="mt-4 inline-block w-full rounded-lg border-2 border-[#FF7A59] px-5 py-3.5 font-bold text-[#FF7A59] hover:bg-[#FF7A59] hover:text-white transition"
         >
           Cadastrar minha ONG

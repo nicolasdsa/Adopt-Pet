@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API = "http://localhost:8010";
+const API = "http://api:8000/ongs";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();

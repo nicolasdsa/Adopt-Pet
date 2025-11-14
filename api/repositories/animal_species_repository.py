@@ -19,7 +19,7 @@ class AnimalSpeciesRepository:
 
     def get_by_id(self, db: Session, species_id: int) -> AnimalSpecies | None:
         stmt = self._base_query().where(AnimalSpecies.id == species_id)
-        return db.execute(stmt).scalar_one_or_none()
+        return db.execute(stmt).unique().scalar_one_or_none()
 
     def get_by_slugs(self, db: Session, slugs: Iterable[str]) -> list[AnimalSpecies]:
         slugs = list(slugs)
