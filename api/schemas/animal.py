@@ -1,5 +1,4 @@
 from __future__ import annotations
-from __future__ import annotations
 
 from datetime import date, datetime
 from typing import List
@@ -7,7 +6,14 @@ from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
 
-from models.animal import AnimalSex, AnimalSize, AnimalStatus
+from models.animal import (
+    AnimalSex,
+    AnimalSize,
+    AnimalStatus,
+    EnvironmentPreference,
+    SociableTarget,
+    TemperamentTrait,
+)
 
 
 class AnimalSpeciesBase(BaseModel):
@@ -50,7 +56,18 @@ class AnimalBase(BaseModel):
     age_years: int | None = Field(None, ge=0, le=50)
     weight_kg: float | None = Field(None, ge=0, le=200)
     size: AnimalSize = AnimalSize.unknown
-    temperament: str | None = Field(None, max_length=255)
+    temperament_traits: list[TemperamentTrait] = Field(
+        default_factory=list,
+        description="Etiquetas exibidas como chips para temperamento.",
+    )
+    environment_preferences: list[EnvironmentPreference] = Field(
+        default_factory=list,
+        description="Ambientes recomendados (ex: apartamento, casa com quintal).",
+    )
+    sociable_with: list[SociableTarget] = Field(
+        default_factory=list,
+        description="Com quem o pet convive bem (ex: crianças, gatos).",
+    )
     vaccinated: bool = False
     neutered: bool = False
     dewormed: bool = False
@@ -83,3 +100,14 @@ class AnimalRead(AnimalBase):
 
     class Config:
         from_attributes = True
+
+
+class AnimalCharacteristicOption(BaseModel):
+    value: str
+    label: str
+
+
+class AnimalCharacteristicsRead(BaseModel):
+    temperament_traits: list[AnimalCharacteristicOption]
+    environment_preferences: list[AnimalCharacteristicOption]
+    sociable_with: list[AnimalCharacteristicOption]

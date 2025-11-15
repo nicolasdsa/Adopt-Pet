@@ -1,13 +1,18 @@
 from __future__ import annotations
 from sqlalchemy.orm import Session
 
-from models.animal import Animal
+from models.animal import (
+    Animal,
+    EnvironmentPreference,
+    SociableTarget,
+    TemperamentTrait,
+)
 from models.animal_photo import AnimalPhoto
 from models.animal_species import AnimalSpecies
 from models.organization import Organization
 from repositories.animal_repository import AnimalRepository
 from repositories.animal_species_repository import AnimalSpeciesRepository
-from schemas.animal import AnimalCreate
+from schemas.animal import AnimalCreate, AnimalCharacteristicsRead
 
 
 class AnimalSpeciesNotFoundError(Exception):
@@ -16,6 +21,29 @@ class AnimalSpeciesNotFoundError(Exception):
 
 class AnimalService:
     """Regras de negócio relacionadas aos animais."""
+
+    _TEMPERAMENT_LABELS = {
+        TemperamentTrait.docile: "Dócil",
+        TemperamentTrait.playful: "Brincalhão",
+        TemperamentTrait.calm: "Calmo",
+        TemperamentTrait.shy: "Tímido",
+        TemperamentTrait.protective: "Protetor",
+        TemperamentTrait.energetic: "Energético",
+    }
+    _ENVIRONMENT_LABELS = {
+        EnvironmentPreference.apartment: "Apartamento",
+        EnvironmentPreference.house_with_yard: "Casa com quintal",
+        EnvironmentPreference.farm_or_ranch: "Sítio / chácara",
+        EnvironmentPreference.active_family: "Família ativa",
+    }
+    _SOCIABLE_LABELS = {
+        SociableTarget.dogs: "Cachorros",
+        SociableTarget.cats: "Gatos",
+        SociableTarget.children: "Crianças",
+        SociableTarget.unknown_people: "Desconhecidos",
+        SociableTarget.elderly: "Idosos",
+        SociableTarget.other_pets: "Outros pets",
+    }
 
     def __init__(
         self,
@@ -29,6 +57,21 @@ class AnimalService:
 
     def list_species(self, db: Session) -> list[AnimalSpecies]:
         return self.animal_species_repository.list_all(db)
+
+    def list_characteristics(self) -> AnimalCharacteristicsRead:
+        def _options(enum_cls, labels: dict) -> list[dict[str, str]]:
+            return [
+                {"value": item.value, "label": labels.get(item, item.value)}
+                for item in enum_cls
+            ]
+
+        return AnimalCharacteristicsRead(
+            temperament_traits=_options(TemperamentTrait, self._TEMPERAMENT_LABELS),
+            environment_preferences=_options(
+                EnvironmentPreference, self._ENVIRONMENT_LABELS
+            ),
+            sociable_with=_options(SociableTarget, self._SOCIABLE_LABELS),
+        )
 
     def create_animal(
         self,
@@ -48,7 +91,9 @@ class AnimalService:
             age_years=payload.age_years,
             weight_kg=payload.weight_kg,
             size=payload.size,
-            temperament=payload.temperament,
+            temperament_traits=payload.temperament_traits,
+            environment_preferences=payload.environment_preferences,
+            sociable_with=payload.sociable_with,
             vaccinated=payload.vaccinated,
             neutered=payload.neutered,
             dewormed=payload.dewormed,

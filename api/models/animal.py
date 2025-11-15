@@ -17,7 +17,7 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -48,6 +48,31 @@ class AnimalStatus(str, Enum):
     reserved = "reserved"
     adopted = "adopted"
     draft = "draft"
+
+
+class TemperamentTrait(str, Enum):
+    docile = "docile"
+    playful = "playful"
+    calm = "calm"
+    shy = "shy"
+    protective = "protective"
+    energetic = "energetic"
+
+
+class EnvironmentPreference(str, Enum):
+    apartment = "apartment"
+    house_with_yard = "house_with_yard"
+    farm_or_ranch = "farm_or_ranch"
+    active_family = "active_family"
+
+
+class SociableTarget(str, Enum):
+    dogs = "dogs"
+    cats = "cats"
+    children = "children"
+    unknown_people = "unknown_people"
+    elderly = "elderly"
+    other_pets = "other_pets"
 
 
 class Animal(Base):
@@ -83,7 +108,21 @@ class Animal(Base):
         nullable=False,
         default=AnimalSize.unknown,
     )
-    temperament: Mapped[str | None] = mapped_column(String(255))
+    temperament_traits: Mapped[list[TemperamentTrait]] = mapped_column(
+        ARRAY(SAEnum(TemperamentTrait, name="temperament_trait")),
+        nullable=False,
+        default=list,
+    )
+    environment_preferences: Mapped[list[EnvironmentPreference]] = mapped_column(
+        ARRAY(SAEnum(EnvironmentPreference, name="environment_preference")),
+        nullable=False,
+        default=list,
+    )
+    sociable_with: Mapped[list[SociableTarget]] = mapped_column(
+        ARRAY(SAEnum(SociableTarget, name="sociable_target")),
+        nullable=False,
+        default=list,
+    )
     vaccinated: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=func.false()
     )
@@ -144,4 +183,12 @@ class Animal(Base):
         return f"Animal(id={self.id!s}, name={self.name!r})"
 
 
-__all__ = ["Animal", "AnimalSex", "AnimalSize", "AnimalStatus"]
+__all__ = [
+    "Animal",
+    "AnimalSex",
+    "AnimalSize",
+    "AnimalStatus",
+    "TemperamentTrait",
+    "EnvironmentPreference",
+    "SociableTarget",
+]

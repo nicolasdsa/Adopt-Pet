@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from models.animal import Animal
 from models.organization import Organization
 from schemas.animal import (
+    AnimalCharacteristicsRead,
     AnimalCreate,
     AnimalPhotoRead,
     AnimalRead,
@@ -37,6 +38,10 @@ def list_species(db: Session) -> list[AnimalSpeciesRead]:
     return [AnimalSpeciesRead.model_validate(item) for item in species]
 
 
+def list_characteristics() -> AnimalCharacteristicsRead:
+    return service.list_characteristics()
+
+
 def _serialize(animal: Animal) -> AnimalRead:
     return AnimalRead(
         id=animal.id,
@@ -47,7 +52,9 @@ def _serialize(animal: Animal) -> AnimalRead:
         age_years=animal.age_years,
         weight_kg=animal.weight_kg,
         size=animal.size,
-        temperament=animal.temperament,
+        temperament_traits=animal.temperament_traits,
+        environment_preferences=animal.environment_preferences,
+        sociable_with=animal.sociable_with,
         vaccinated=animal.vaccinated,
         neutered=animal.neutered,
         dewormed=animal.dewormed,

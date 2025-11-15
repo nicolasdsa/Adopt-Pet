@@ -1,11 +1,20 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from controllers.animal_controller import create_animal, list_species
+from controllers.animal_controller import (
+    create_animal,
+    list_characteristics,
+    list_species,
+)
 from core.dependencies import get_current_organization
 from db.session import get_db
 from models.organization import Organization
-from schemas.animal import AnimalCreate, AnimalRead, AnimalSpeciesRead
+from schemas.animal import (
+    AnimalCharacteristicsRead,
+    AnimalCreate,
+    AnimalRead,
+    AnimalSpeciesRead,
+)
 
 router = APIRouter(prefix="/animals", tags=["Animais"])
 
@@ -18,6 +27,16 @@ router = APIRouter(prefix="/animals", tags=["Animais"])
 def list_animal_species(db: Session = Depends(get_db)) -> list[AnimalSpeciesRead]:
     """Retorna as espécies cadastradas para seleção."""
     return list_species(db)
+
+
+@router.get(
+    "/characteristics",
+    response_model=AnimalCharacteristicsRead,
+    summary="Listar opções de características para cadastro",
+)
+def list_animal_characteristics() -> AnimalCharacteristicsRead:
+    """Retorna os valores dos enumeradores usados nos chips do formulário."""
+    return list_characteristics()
 
 
 @router.post(
