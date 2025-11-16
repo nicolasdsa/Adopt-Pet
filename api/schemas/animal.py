@@ -102,6 +102,39 @@ class AnimalRead(AnimalBase):
         from_attributes = True
 
 
+class AnimalOrganizationSummary(BaseModel):
+    id: UUID
+    name: str = Field(..., min_length=1, max_length=255)
+    city: str | None = Field(None, max_length=100)
+    state: str | None = Field(None, min_length=2, max_length=2)
+    latitude: float | None = Field(None, ge=-90, le=90)
+    longitude: float | None = Field(None, ge=-180, le=180)
+    logo_url: str | None = Field(None, max_length=255)
+
+    class Config:
+        from_attributes = True
+
+
+class AnimalPublicRead(AnimalRead):
+    distance_km: float = Field(
+        ...,
+        ge=0,
+        description="Distância aproximada em quilômetros até as coordenadas informadas.",
+    )
+    organization: AnimalOrganizationSummary
+
+
+class AnimalListItemRead(BaseModel):
+    id: UUID
+    name: str = Field(..., min_length=1, max_length=255)
+    status: AnimalStatus
+    species: AnimalSpeciesRead
+    photo_url: AnyHttpUrl | str | None = Field(
+        None,
+        description="URL da principal foto cadastrada para o animal.",
+    )
+
+
 class AnimalCharacteristicOption(BaseModel):
     value: str
     label: str

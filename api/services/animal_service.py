@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 
 from models.animal import (
     Animal,
+    AnimalSex,
+    AnimalSize,
+    AnimalStatus,
     EnvironmentPreference,
     SociableTarget,
     TemperamentTrait,
@@ -118,3 +121,52 @@ class AnimalService:
 
         db.refresh(animal)
         return animal
+
+    def search_available_animals(
+        self,
+        db: Session,
+        *,
+        latitude: float,
+        longitude: float,
+        skip: int = 0,
+        limit: int = 50,
+        radius_km: float | None = None,
+        species_id: int | None = None,
+        size: AnimalSize | None = None,
+        sex: AnimalSex | None = None,
+        age_years: int | None = None,
+        temperament_traits: list[TemperamentTrait] | None = None,
+    ) -> list[tuple[Animal, float]]:
+        effective_radius = radius_km if radius_km is not None else 50.0
+        return self.animal_repository.search_available(
+            db,
+            latitude=latitude,
+            longitude=longitude,
+            radius_km=effective_radius,
+            skip=skip,
+            limit=limit,
+            species_id=species_id,
+            size=size,
+            sex=sex,
+            age_years=age_years,
+            temperament_traits=temperament_traits,
+        )
+
+    def list_animals_by_organization(
+        self,
+        db: Session,
+        *,
+        organization: Organization,
+        skip: int = 0,
+        limit: int = 50,
+        name: str | None = None,
+        status: AnimalStatus | None = None,
+    ) -> list[Animal]:
+        return self.animal_repository.list_by_organization(
+            db,
+            organization_id=organization.id,
+            skip=skip,
+            limit=limit,
+            name=name,
+            status=status,
+        )
