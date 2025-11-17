@@ -37,3 +37,15 @@ export type AnimalCreate = {
   species_id: number;
   photos: AnimalPhotoCreate[];
 };
+
+export type AnimalStatus =
+  | "available" | "reserved" | "in_treatment" | "adopted" | "temporary_home"
+  | (string & {}); 
+
+export type AnimalListItemRead = {
+  id: string;
+  name: string;
+  status: AnimalStatus;
+  species: AnimalSpeciesRead;
+  photo_url?: string | null;
+};
