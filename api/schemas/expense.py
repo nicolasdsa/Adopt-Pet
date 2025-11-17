@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import AnyUrl, BaseModel, Field, field_validator
+from pydantic import AnyUrl, BaseModel, Field, computed_field, field_validator
 
 from schemas.expense_category import ExpenseCategoryRead
 
@@ -57,3 +57,8 @@ class ExpenseRead(ExpenseBase):
 
     class Config:
         from_attributes = True
+
+    @computed_field
+    @property
+    def category_name(self) -> str:
+        return self.category.name

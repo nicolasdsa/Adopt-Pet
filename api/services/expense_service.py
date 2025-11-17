@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -109,3 +110,19 @@ class ExpenseService:
         if expense is None:
             raise ExpenseNotFoundError
         return expense
+
+    def totals_by_category(
+        self,
+        db: Session,
+        organization: Organization,
+        *,
+        start_date: date,
+        end_date: date,
+    ) -> dict[str, Decimal]:
+        rows = self.expense_repository.totals_by_category(
+            db,
+            organization.id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return {name: total for name, total in rows}

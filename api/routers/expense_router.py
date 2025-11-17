@@ -1,10 +1,16 @@
 from datetime import date
+from decimal import Decimal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from controllers.expense_controller import create_expense, get_expense, list_expenses
+from controllers.expense_controller import (
+    create_expense,
+    get_expense,
+    list_expenses,
+    summarize_expenses_by_category,
+)
 from core.dependencies import get_current_organization
 from db.session import get_db
 from models.organization import Organization
@@ -63,3 +69,27 @@ def retrieve_expense(
     db: Session = Depends(get_db),
 ) -> ExpenseRead:
     return get_expense(organization, expense_id, db)
+
+
+@router.get(
+    "/totals-by-category",
+    response_model=dict[str, Decimal],
+    summary="Totalizar despesas por categoria em um período",
+)
+def get_expense_totals_by_category(
+    organization: Organization = Depends(get_current_organization),
+    db: Session = Depends(get_db),
+    start_date: date = Query(..., description="Data inicial do período"),
+    end_date: date = Query(..., description="Data final do período"),
+) -> dict[str, Decimal]:
+    if start_date > end_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A data inicial não pode ser posterior à data final.",
+        )
+    return summarize_expenses_by_category(
+        organization,
+        db,
+        start_date=start_date,
+        end_date=end_date,
+    )

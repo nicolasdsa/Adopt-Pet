@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -70,6 +71,21 @@ def get_expense(
             detail="Despesa não encontrada.",
         )
     return _serialize(expense)
+
+
+def summarize_expenses_by_category(
+    organization: Organization,
+    db: Session,
+    *,
+    start_date: date,
+    end_date: date,
+) -> dict[str, Decimal]:
+    return service.totals_by_category(
+        db,
+        organization,
+        start_date=start_date,
+        end_date=end_date,
+    )
 
 
 def _serialize(expense: Expense) -> ExpenseRead:
